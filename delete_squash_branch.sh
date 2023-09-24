@@ -34,13 +34,21 @@ while read -r project; do
   # Define the name of the squash branch
   squash_branch="${current_branch}${squash_suffix}"
 
+  # check out squash branch so can delete it
+  git checkout "$squash_branch"
+
   # Check out the current branch before deleting the squash branch
   git checkout "$current_branch"
 
-  # Delete the squash branch if it exists
+  # Delete the squash branch if it exists (both locally and remotely)
   if git rev-parse --verify "$squash_branch" >/dev/null 2>&1; then
+    # Delete the local branch
     git branch -d "$squash_branch"
-    echo "Deleted branch '$squash_branch' in project '$project'"
+    
+    # Delete the remote branch
+    git push origin --delete "$squash_branch"
+
+    echo "Deleted branch '$squash_branch' in project '$project' (local and remote)"
   else
     echo "Branch '$squash_branch' not found in project '$project'"
   fi
