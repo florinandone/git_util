@@ -13,8 +13,27 @@ if [ ! -f "$branch_properties" ]; then
   exit 1
 fi
 
+project_unchanged_properties="$work_folder/project_unchanged.properties"
+project_changed_properties="$work_folder/project_changed.properties"
+
+
+# Check if the project_list_properties file exists
+if [ ! -f "$project_unchanged_properties" ]; then
+  echo "Error: project_unchanged.properties not found in the work_folder."
+  exit 1
+fi
+
+# Check if the project_list_properties file exists
+if [ ! -f "$project_changed_properties" ]; then
+  echo "Error: project_changed.properties not found in the work_folder."
+  exit 1
+fi
+
 # Read the current branch name from branch.properties
 current_branch=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
+
+# Read the base branch name from branch_properties
+base_branch=$(grep '^base_branch=' "$branch_properties" | cut -d'=' -f2)
 
 # Iterate through project names in project_list.properties and delete the squash branches
 while read -r project; do
@@ -28,9 +47,11 @@ while read -r project; do
   # Navigate to the project folder
   cd "$project_folder" || exit 1
 
-  # Check out the current branch before deleting the squash branch
+
+  git checkout "$base_branch"
+ 
   git checkout "$current_branch"
 
   # Return to the clone_folder
   cd "$clone_folder" || exit 1
-done < "$work_folder/project_list.properties"
+done < <(sort -u "$project_unchanged_properties" "$project_changed_properties")
