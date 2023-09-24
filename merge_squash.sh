@@ -6,6 +6,7 @@ clone_folder="$work_folder/clone"  # Define the clone sub-folder
 
 # Define properties files within work_folder
 branch_properties="$work_folder/branch.properties"
+project_list_properties="$work_folder/project_list.properties"  # Use project_list.properties
 
 # Check if the branch_properties file exists
 if [ ! -f "$branch_properties" ]; then
@@ -16,8 +17,8 @@ fi
 # Read the current branch name from branch.properties
 current_branch=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
 
-# Create a new branch name by appending "_squash" to the current branch
-squash_branch="${current_branch}_squash"
+# Define the suffix for squash branches
+squash_suffix="_squash"
 
 # Iterate through project names in project_list.properties and perform merge squash for each project
 while read -r project; do
@@ -31,10 +32,13 @@ while read -r project; do
   # Navigate to the project folder
   cd "$project_folder" || exit 1
 
-  # Delete the existing squash branch if it already exists
+  # Define the name of the squash branch
+  squash_branch="${current_branch}${squash_suffix}"
+
+  # Check if the squash branch already exists in the project
   if git rev-parse --verify "$squash_branch" >/dev/null 2>&1; then
-    git branch -d "$squash_branch"
-    echo "Deleted existing branch '$squash_branch' in project '$project'"
+    echo "Squash branch '$squash_branch' already exists in project '$project'. Skipping."
+    continue
   fi
 
   # Create a new branch from the current branch and check it out
