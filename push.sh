@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Define default work_folder
-work_folder="$(pwd)"  # Set work_folder to the current working directory
-
-# Define properties files within work_folder
+# Define default paths and sub-folder
+work_folder="$(pwd)"        # Set work_folder to the current working directory
+clone_folder="$work_folder/clone"  # Define the clone sub-folder
 project_list_properties="$work_folder/project_list.properties"
 
 # Check if the project_list_properties file exists
@@ -15,7 +14,7 @@ fi
 # Read the project names from project_list.properties and push each project
 while read -r project; do
   # Navigate to the project folder within work_folder
-  cd "$work_folder/$project" || exit 1
+  cd "$clone_folder/$project" || exit 1
 
   # Get the current branch name
   current_branch=$(git symbolic-ref --short HEAD)
