@@ -13,15 +13,8 @@ if [ ! -f "$branch_properties" ]; then
   exit 1
 fi
 
-project_unchanged_properties="$work_folder/project_unchanged.properties"
 project_changed_properties="$work_folder/project_changed.properties"
 
-
-# Check if the project_list_properties file exists
-if [ ! -f "$project_unchanged_properties" ]; then
-  echo "Error: project_unchanged.properties not found in the work_folder."
-  exit 1
-fi
 
 # Check if the project_list_properties file exists
 if [ ! -f "$project_changed_properties" ]; then
@@ -71,4 +64,4 @@ while read -r project; do
 
   # Return to the clone_folder
   cd "$clone_folder" || exit 1
-done < <(sort -u "$project_unchanged_properties" "$project_changed_properties")
+done < <(sort -u "$project_changed_properties")
