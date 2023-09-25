@@ -61,9 +61,9 @@ while read -r project; do
   git merge --squash "$current_branch"
 
   # Commit the squash merge
-  git commit -m "Merge branch '$current_branch' into '$squash_branch' (squash)"
+  # git commit -m "Merge branch '$current_branch' into '$squash_branch' (squash)"
 
-  echo "Created and pushed branch '$squash_branch' with a squash merge from '$current_branch' in project '$project'"
+  echo "Created and pushed branch '$squash_branch' prepared a squash merge from '$current_branch' in project '$project'"
 
   # Return to the clone_folder
   cd "$clone_folder" || exit 1
