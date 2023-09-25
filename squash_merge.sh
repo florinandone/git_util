@@ -26,6 +26,8 @@ fi
 
 # Read the current branch name from branch.properties
 current_branch=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
+# Read the base branch name from branch_properties
+base_branch=$(grep '^base_branch=' "$branch_properties" | cut -d'=' -f2)
 
 # Define the suffix for squash branches
 squash_suffix="_squash"
@@ -51,8 +53,8 @@ while read -r project; do
     continue
   fi
 
-  # Create a new branch from the current branch and check it out
-  git checkout -b "$squash_branch" "$current_branch"
+  # Create a new branch from the base branch and check it out
+  git checkout -b "$squash_branch" "$base_branch"
 
   # Push the new branch to the remote repository
   git push origin "$squash_branch"
