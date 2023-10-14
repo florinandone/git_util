@@ -14,10 +14,14 @@ pipeline {
                     for (def subdirectory in subdirectories.split('\n')) {
                         def subfolderPath = subdirectory
                         echo "Cleaning and rebasing in subfolder: ${subfolderPath}"
-                        // Clean the subfolder
-                        sh(script: "../../clean_checkout.sh ${subfolderPath}")
-                        // Rebase the subfolder
-                        sh(script: "../../rebase_current.sh ${subfolderPath}")
+                        
+                        // Change to the subdirectory
+                        dir(subfolderPath) {
+                            // Clean the subfolder
+                            sh(script: "../../clean_checkout.sh", returnStatus: true)
+                            // Rebase the subfolder
+                            sh(script: "../../rebase_current.sh", returnStatus: true)
+                        }
                     }
                 }
             }
