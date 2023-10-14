@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define default work_folder and clone_folder
-work_folder="${1:-$(pwd)}"  # Use the provided folder or set work_folder to the current working directory
+work_folder="$(pwd)"  # Set work_folder to the current working directory
 clone_folder="$work_folder/clone"  # Define the clone sub-folder
 
 # Define properties files within work_folder
@@ -15,11 +15,12 @@ if [ ! -f "$branch_properties" ]; then
   exit 1
 fi
 
-# Read the current branch name from branch.properties
+# Read the current and base branch names from branch.properties
 current_branch=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
+base_branch=$(grep '^base_branch=' "$branch_properties" | cut -d'=' -f2)
 
-# Function to push the current branch to its corresponding remote branch in a project
-push_current() {
+# Function to rebase the current branch from the base branch in a project
+rebase_current() {
   local project="$1"
   
   # Check if the project folder exists within the clone_folder
@@ -30,13 +31,14 @@ push_current() {
     # Navigate to the project folder
     cd "$project_folder" || exit 1
 
-    # Check if the current branch exists
-    if git rev-parse --verify "$current_branch" >/dev/null 2>&1; then
-      # Push the current branch to the corresponding remote branch
-      git push origin "$current_branch"
-      echo "Pushed '$current_branch' to the remote in project '$project'."
+    # Check if the current branch and base branch exist
+    if git rev-parse --verify "$current_branch" >/dev/null 2>&1 && git rev-parse --verify "$base_branch" >/dev/null 2>&1; then
+      echo "Rebasing '$current_branch' from '$base_branch' in project '$project'..."
+      git checkout "$current_branch"
+      git pull
+      git rebase "$base_branch"
     else
-      echo "Current branch does not exist in project '$project'. Skipping."
+      echo "Current or base branch does not exist in project '$project'. Skipping."
     fi
 
     # Return to the clone_folder
@@ -46,5 +48,5 @@ push_current() {
 
 # Iterate through all projects in both project_unchanged.properties and project_changed.properties
 while read -r project || [ -n "$project" ]; do
-  push_current "$project"
+  rebase_current "$project"
 done < <(sort -u "$project_unchanged_properties" "$project_changed_properties")
