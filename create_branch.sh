@@ -1,19 +1,12 @@
 #!/bin/bash
 
-# Define default paths and sub-folder
+# Define default work_folder and clone_folder
 work_folder="$(pwd)"        # Set work_folder to the current working directory
 clone_folder="$work_folder/clone"  # Define the clone sub-folder
-project_list_properties="$work_folder/project_list.properties"
 
 # Define properties files within work_folder
-project_list_properties="$work_folder/project_list.properties"
-branch_properties="$work_folder/branch.properties"  # New combined properties file
-
-# Check if the project_list_properties file exists
-if [ ! -f "$project_list_properties" ]; then
-  echo "Error: project_list.properties not found in the work_folder."
-  exit 1
-fi
+branch_properties="$work_folder/branch.properties"
+project_changed_properties="$work_folder/project_changed.properties"
 
 # Check if the branch_properties file exists
 if [ ! -f "$branch_properties" ]; then
@@ -21,25 +14,36 @@ if [ ! -f "$branch_properties" ]; then
   exit 1
 fi
 
-# Read the base branch name from branch_properties
-base_branch=$(grep '^base_branch=' "$branch_properties" | cut -d'=' -f2)
+# Read the current branch name from branch.properties
+current_branch=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
 
-# Read the branch name from branch_properties
-branch_name=$(grep '^current_branch=' "$branch_properties" | cut -d'=' -f2)
+# Function to create a new branch in a project
+create_branch() {
+  local project="$1"
+  
+  # Check if the project folder exists within the clone_folder
+  project_folder="$clone_folder/$project"
+  if [ ! -d "$project_folder" ]; then
+    echo "Project folder not found for '$project' in '$clone_folder'. Skipping."
+  else
+    # Navigate to the project folder
+    cd "$project_folder" || exit 1
 
-# Read the project names from project_list.properties
-while read -r project; do
-  # Navigate to the project folder within work_folder
-  cd "$clone_folder/$project" || exit 1
+    # Check if the new branch already exists
+    if git rev-parse --verify "$current_branch" >/dev/null 2>&1; then
+      echo "Branch '$current_branch' already exists in project '$project'. Skipping."
+    else
+      # Create a new branch based on the current_branch and check it out
+      git checkout -b "$current_branch"
+      echo "Created and checked out branch '$current_branch' in project '$project'."
+    fi
 
-  # Ensure we're on the specified base branch
-  git checkout "$base_branch"
+    # Return to the clone_folder
+    cd "$clone_folder" || exit 1
+  fi
+}
 
-  # Create a new branch with the branch name
-  git checkout -b "$branch_name"
-
-  # Return to the script's folder (clone_folder)
-  cd - || exit 1
-
-  echo "Created branch '$branch_name' for project '$project'"
-done < "$project_list_properties"
+# Iterate through projects listed in project_changed_properties
+while read -r project || [ -n "$project" ]; do
+  create_branch "$project"
+done < "$project_changed_properties"
