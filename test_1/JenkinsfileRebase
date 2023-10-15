@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+     triggers {
+        cron('0 3 * * *')
+    }
+
+    stages {
+        stage('Rebase') {
+            steps {
+                script {
+                    // Define the path to the rebase script
+                    def rebaseScript = "../workflow_rebase.sh"
+
+                    // Ensure the script file exists
+                    if (fileExists(rebaseScript)) {
+                        // Execute the rebase script
+                        sh(script: rebaseScript)
+                    } else {
+                        error "Rebase script not found at ${rebaseScript}"
+                    }
+                }
+            }
+        }
+    }
+}

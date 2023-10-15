@@ -31,11 +31,13 @@ rebase_current() {
     # Navigate to the project folder
     cd "$project_folder" || exit 1
 
+    git checkout "$base_branch"
+    git checkout "$current_branch"
+
     # Check if the current branch and base branch exist
     if git rev-parse --verify "$current_branch" >/dev/null 2>&1 && git rev-parse --verify "$base_branch" >/dev/null 2>&1; then
       echo "Rebasing '$current_branch' from '$base_branch' in project '$project'..."
-      git checkout "$current_branch"
-      git pull
+      git pull origin "$current_branch"
       git rebase "$base_branch"
     else
       echo "Current or base branch does not exist in project '$project'. Skipping."
